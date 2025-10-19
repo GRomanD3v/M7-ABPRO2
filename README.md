@@ -1,47 +1,91 @@
-# DOCUMENTACIÓN TÉCNICA DEL PROYECTO: ADWEB ONLINE
+# Documentación del Proyecto: Arquitectura de Autenticación (Vue 3, Pinia y Firebase)
 
-1.	VISIÓN GENERAL DEL PROYECTO
-Este proyecto es una aplicación web de lista de cursos construida con Vue 3 (Composition API) y Pinia para la gestión del estado, utilizando Firebase Authentication para la gestión de usuarios. El siguiente paso es integrar Firebase Firestore para manejar la lista dinámica de cursos.
+Este documento describe la arquitectura y el flujo de autenticación implementado hasta la fecha para el sistema de administración de cursos "Adweb Online".
 
-2.	ARQUITECTURA DE LA APLICACIÓN
-El proyecto sigue una arquitectura estándar de Vue:
-•	src/views: Contenedores de página (HomeView.vue) que usan componentes y lógica de negocio.
-•	src/components: Componentes de UI reutilizables (Login.vue, Register.vue, Header.vue) y específicos de formulario.
-•	src/stores: Módulo de gestión de estado centralizado (Pinia) (auth.js).
-•	src/router: Definición de rutas y la Guardia de Navegación Global (index.js).
-•	src/firebase: Inicialización de los servicios de Firebase (Auth y Firestore) (init.js).
-3.	LÓGICA CLAVE: AUTENTICACIÓN (AUTH STORE)
-Toda la gestión de usuarios (Login, Registro, Cierre de Sesión y Persistencia) se maneja en el Pinia Store (src/stores/auth.js).
-3.1. Estructura del Estado (state):
-•	user: Contiene el objeto de usuario de Firebase (User | null).
-•	isAuthenticated: Booleano reactivo que indica si hay una sesión activa.
-•	loading: Controla el estado de las peticiones a Firebase (usado para deshabilitar botones).
-•	error: Almacena los mensajes de error de Firebase para mostrar en la UI.
-3.2. Acciones Principales:
-•	registerUser(email, password) / loginUser(email, password): Ejecutan los métodos de Firebase. En caso de éxito, actualizan el estado y redirigen a /home.
-•	logoutUser(): Cierra la sesión de Firebase y redirige a /login.
-•	initAuth(): Usa onAuthStateChanged para escuchar la sesión del usuario y asegurar la persistencia de sesión al recargar la página.
-3.3. Componentes Asociados:
-•	Login.vue / Register.vue: Llama a las acciones del Store y usa las variables loading y error para controlar la interfaz del formulario.
-4.	FLUJO DE NAVEGACIÓN (ROUTER GUARD)
-El archivo src/router/index.js contiene la lógica de enrutamiento y el control de acceso.
-4.1. Rutas Clave:
-•	/login y /register: Acceso público (requiresAuth: false).
-•	/home: Requiere autenticación (requiresAuth: true).
-4.2. Guardia de Navegación (router.beforeEach):
-•	Protección de Rutas: Si la ruta requiere autenticación y el usuario NO está autenticado, es redirigido a /login.
-•	Protección de la Sesión: Si el usuario ya está autenticado e intenta acceder a /login o /register, es redirigido a /home para evitar redundancia.
-5.	COMPONENTES DE UI CREADOS
-•	Header.vue: Barra de navegación superior. Acepta la Prop: userName (String). Emite el Evento: logout.
-•	HomeView.vue: Vista principal de la aplicación. Muestra la lista de cursos. Usa el AuthStore y pronto el Firestore.
-•	Login.vue: Formulario para iniciar sesión. Usa el AuthStore.
-•	Register.vue: Formulario para crear nuevas cuentas. Usa el AuthStore.
-6.	PRÓXIMOS PASOS (PENDIENTES)
-La siguiente prioridad es implementar la capa de datos real para reemplazar los datos ficticios en HomeView.vue.
-•	
-1.	Implementar Lógica de Firestore: Crear conexión y listener onSnapshot para la colección de cursos.
-•	
-2.	Mostrar Cursos Dinámicamente: Reemplazar los datos de ejemplo en HomeView.vue con los datos reales.
-•	
-3.	Manejar Estados de Carga: Añadir un spinner o mensaje mientras se obtienen los datos de Firestore.
+---
 
+### 1. Stack Tecnológico
+
+Frontend: Vue 3 (Composition API / VITE) - Interfaz de Usuario.
+
+Gestión de Estado: Pinia - Almacenamiento centralizado y reactivo del estado de autenticación.
+
+Base de Datos/Auth: Firebase Authentication - Gestión de usuarios, registro e inicio de sesión.
+
+Routing: Vue Router 4 - Gestión de rutas y protección de rutas privadas (Guards).
+
+Estilos: Bootstrap 5 - Componentes de UI y estilos generales.
+
+---
+
+### 2. Flujo de Autenticación Principal
+
+El flujo de autenticación está orquestado por tres elementos principales que trabajan en conjunto:
+
+src/stores/auth.js (Pinia Store): Centraliza la lógica de Firebase y el estado.
+
+src/router/index.js (Router Guards): Protege las rutas privadas.
+
+onAuthStateChanged (Firebase Observer): Sincroniza el estado de Firebase con Pinia.
+
+### 2.1. Sincronización de Estado (onAuthStateChanged)
+
+La lógica clave está en la inicialización de Firebase, donde se escucha cualquier cambio en el estado del usuario (inicio o cierre de sesión).
+
+Mecanismo:
+
+Se inicializa Firebase en el archivo principal.
+
+Se establece un listener global de Firebase: onAuthStateChanged.
+
+Cada vez que el usuario se loguea, desloguea, o la aplicación se recarga, este listener se dispara, actualizando el estado user en el Pinia Store.
+
+El Router Guard utiliza el estado isAuthenticated del Store para decidir la navegación.
+
+---
+
+### 3. Componentes y Lógica (Vue/Pinia)
+
+### A. Pinia Store: src/stores/auth.js
+
+Este store maneja todo el estado reactivo y la comunicación directa con Firebase.
+
+Estado Clave: user (objeto o null), isAuthenticated (getter), loading (boolean), error (string o null).
+
+loginUser(email, password): Llama a signInWithEmailAndPassword. No realiza la redirección.
+
+registerUser(email, password): Llama a createUserWithEmailAndPassword. No realiza la redirección.
+
+logoutUser(): Llama a signOut(auth). El listener de Firebase se encarga de actualizar el estado. No realiza la redirección.
+
+### B. Componentes de Acceso: Login.vue y Register.vue
+
+Ambos componentes:
+
+Llaman a la acción correspondiente del Store (authStore.loginUser() o authStore.registerUser()).
+
+Redirección (Éxito): Si la acción del Store finaliza sin errores, el componente utiliza router.push({ name: 'home' }) para navegar a la vista principal.
+
+Error: La plantilla muestra el mensaje de error capturado y almacenado en authStore.error.
+
+### C. Home View: src/views/HomeView.vue
+
+Esta vista es el punto de entrada para usuarios autenticados.
+
+Cierre de Sesión: Define la función handleLogout que llama a authStore.logoutUser() y luego fuerza la redirección usando router.push({ name: 'login' }).
+
+### D. Header: src/components/Header.vue
+
+Es un componente presentacional.
+
+El botón "Cerrar Sesión" emite un evento (@click="emit('logout')") al componente padre (HomeView.vue) para iniciar la lógica de cierre de sesión.
+
+---
+
+### 4. Protección de Rutas (Vue Router)
+
+El archivo src/router/index.js incluye un Navigation Guard global (router.beforeEach) que implementa la protección de rutas.
+
+Rutas Privadas (requiresAuth: true): Rutas como /home (y /admin a futuro) solo son accesibles si authStore.isAuthenticated es true. De lo contrario, redirige a /login.
+
+Rutas Públicas (requiresAuth: false): Rutas como /login y /register solo son accesibles si authStore.isAuthenticated es false. Si el usuario ya está logueado, redirige a /home.
