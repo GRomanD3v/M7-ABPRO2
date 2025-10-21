@@ -4,9 +4,11 @@ import { useRouter } from 'vue-router'; // Necesario para la redirección
 import { storeToRefs } from 'pinia'; // Necesario para la reactividad
 import { useAuthStore } from '../stores/auth';
 import Header from '../components/Header.vue';
+import { useCursoStore } from '../stores/curso';
 
 // 1. Inicialización y Reactividad
 const authStore = useAuthStore();
+const cursoStore = useCursoStore();
 const router = useRouter();
 
 // Usamos storeToRefs para obtener las propiedades reactivas del store
@@ -53,6 +55,14 @@ const loadCourses = () => {
         { id: 3, title: 'Bases de Datos con Firebase Firestore', description: 'Implementa una base de datos NoSQL escalable para tu aplicación web.', duration: '6 semanas', instructor: 'Prof. Mateo' },
     ];
 };
+
+const crearCurso = async () => {
+  await cursoStore.agregarCurso(
+            { title: 'Introducción a Vue 3 y Pinia', description: 'Aprende los fundamentos del framework Vue.js con la gestión de estado Pinia.', duration: '4 semanas', instructor: 'Prof. Ana' },
+
+  )
+}
+
 </script>
 
 <template>
@@ -71,6 +81,7 @@ const loadCourses = () => {
             <div class="card-body">
               <h5 class="card-title fw-bold text-primary">{{ course.title }}</h5>
               <p class="card-text text-muted small">{{ course.description }}</p>
+              <button @click="crearCurso">Crear Curso</button>
             </div>
             <div class="card-footer bg-light border-0 d-flex justify-content-between align-items-center">
               <span class="badge text-bg-info">

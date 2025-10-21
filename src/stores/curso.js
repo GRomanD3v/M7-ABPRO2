@@ -1,6 +1,7 @@
 // src/stores/curso.js
 import { defineStore } from 'pinia';
 import { db } from '@/firebase/init'; // Importa la instancia de Firestore
+import { useAuthStore } from './auth';
 // **Importante:** Agregamos 'getDocs' para fetchCursos (si no está)
 import { collection, getDocs, getDoc, addDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore'; 
 
@@ -72,7 +73,9 @@ export const useCursoStore = defineStore('curso', {
         // ------------------------------------------------------------------
         async agregarCurso(nuevoCurso) {
             try {
+                const auth = useAuthStore();
                 const cursosCollection = collection(db, 'cursos');
+                nuevoCurso.userId = auth.userId
                 const docRef = await addDoc(cursosCollection, nuevoCurso);
 
                 // Actualiza Pinia con el nuevo curso (incluyendo el ID generado)

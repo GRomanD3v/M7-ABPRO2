@@ -32,6 +32,7 @@ export const useAuthStore = defineStore('auth', {
             // onAuthStateChanged escucha la persistencia de la sesión de Firebase
             onAuthStateChanged(auth, (user) => { 
                 this.user = user;
+                this.userId = user.uid;
                 this.isAuthReady = true;
                 this.loading = false;
                 console.log('Auth state changed. User:', user ? user.email : 'None');
