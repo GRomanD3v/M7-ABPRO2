@@ -75,7 +75,6 @@ export const useCursoStore = defineStore('curso', {
             try {
                 const auth = useAuthStore();
                 const cursosCollection = collection(db, 'cursos');
-                nuevoCurso.userId = auth.userId
                 const docRef = await addDoc(cursosCollection, nuevoCurso);
 
                 // Actualiza Pinia con el nuevo curso (incluyendo el ID generado)
