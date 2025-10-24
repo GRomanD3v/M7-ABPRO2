@@ -1,4 +1,4 @@
-import { auth } from '../firebase/init';
+import { auth } from '../firebase/init.js';
 import { defineStore } from 'pinia';
 import { 
     signInWithEmailAndPassword, 

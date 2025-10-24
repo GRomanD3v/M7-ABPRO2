@@ -1,6 +1,6 @@
 // src/stores/curso.js
 import { defineStore } from 'pinia';
-import { db } from '@/firebase/init'; // Importa la instancia de Firestore
+import { db } from '@/firebase/init.js'; // Importa la instancia de Firestore
 import { useAuthStore } from './auth';
 // **Importante:** Agregamos 'getDocs' para fetchCursos (si no está)
 import { collection, getDocs, getDoc, addDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore'; 
