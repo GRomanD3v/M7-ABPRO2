@@ -3,7 +3,7 @@ import { ref, onMounted, computed, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { storeToRefs } from "pinia";
 import { useAuthStore } from "../stores/auth";
-import { useCursoStore } from "../stores/cursos"; // Asegúrate de que el path es correcto
+import { useCursoStore } from "../stores/curso"; // Asegúrate de que el path es correcto
 import { useNotificationStore } from '../stores/notification';
 import Header from "../components/Header.vue";
 
