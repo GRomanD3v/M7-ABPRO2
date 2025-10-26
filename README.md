@@ -1,91 +1,203 @@
-# Documentación del Proyecto: Arquitectura de Autenticación (Vue 3, Pinia y Firebase)
+# 📚 Adweb Online: Plataforma de Administración de Cursos
+ ## Repositorio: https://github.com/GRomanD3v/M7-ABPRO2
+ ### Integrantes: 
+ - María Teresa De La Fuente
+ - Daniela Garrido
+ - Gonzalo Román R.
+---
 
-Este documento describe la arquitectura y el flujo de autenticación implementado hasta la fecha para el sistema de administración de cursos "Adweb Online".
+Este proyecto es una aplicación web de página única (SPA) desarrollada con Vue 3 (Vite), utilizando Pinia para la gestión de estados y Firebase/Firestore como backend de autenticación y base de datos en tiempo real.
 
 ---
 
-### 1. Stack Tecnológico
+### 🎯 Requerimientos Cumplidos del Proyecto
 
-Frontend: Vue 3 (Composition API / VITE) - Interfaz de Usuario.
+A continuación, se detalla el cumplimiento de cada requisito funcional del proyecto:
 
-Gestión de Estado: Pinia - Almacenamiento centralizado y reactivo del estado de autenticación.
+### Autenticación y Seguridad
+- Requisito: Enlace con Firestore y Google Account.
+- Cumplimiento: CUMPLIDO. La aplicación se inicializa con la configuración de Firebase y utiliza tanto Authentication como Firestore.
+- Requisito: Crear interfaz de acceso (Login y Registro).
 
-Base de Datos/Auth: Firebase Authentication - Gestión de usuarios, registro e inicio de sesión.
+- Cumplimiento: CUMPLIDO. Se han diseñado las vistas para manejar los formularios de acceso.
+- Requisito: Validación por correo y clave (Solo usuarios registrados).
 
-Routing: Vue Router 4 - Gestión de rutas y protección de rutas privadas (Guards).
+- Cumplimiento: CUMPLIDO. La lógica de Pinia utiliza las funciones de Firebase Auth y las rutas están protegidas por Vue Router y guards.
 
-Estilos: Bootstrap 5 - Componentes de UI y estilos generales.
+- Requisito: Implementar el método createUserWithEmailAndPassword en Registro.
 
----
+- Cumplimiento: CUMPLIDO. La acción registerUser en src/stores/auth.js utiliza este método.
 
-### 2. Flujo de Autenticación Principal
+- Requisito: Utilizar el método signInWithEmailAndPassword en Login.
 
-El flujo de autenticación está orquestado por tres elementos principales que trabajan en conjunto:
+- Cumplimiento: CUMPLIDO. La acción loginUser en src/stores/auth.js utiliza este método.
 
-src/stores/auth.js (Pinia Store): Centraliza la lógica de Firebase y el estado.
+- Requisito: Emplear el método signOut en la barra de navegación.
 
-src/router/index.js (Router Guards): Protege las rutas privadas.
+- Cumplimiento: CUMPLIDO. La acción logoutUser en src/stores/auth.js ejecuta signOut(auth).
 
-onAuthStateChanged (Firebase Observer): Sincroniza el estado de Firebase con Pinia.
+- Requisito: Aplicar el método onAuthStateChanged para identificar el ingreso o salida.
 
-### 2.1. Sincronización de Estado (onAuthStateChanged)
+- Cumplimiento: CUMPLIDO. Implementado en la acción initAuth de src/stores/auth.js.
 
-La lógica clave está en la inicialización de Firebase, donde se escucha cualquier cambio en el estado del usuario (inicio o cierre de sesión).
+- Requisito: Agregar una ventana modal o mensaje indicando que el usuario ingresó correctamente desde onAuthStateChanged.
 
-Mecanismo:
+- Cumplimiento: CUMPLIDO (Vía Notificación Toast). Se muestra un mensaje de éxito (Toast) tras el login/registro para confirmar el ingreso.
 
-Se inicializa Firebase en el archivo principal.
+### Vistas y Navegación
 
-Se establece un listener global de Firebase: onAuthStateChanged.
+- Requisito: Al validar, desplegar "Home" con cards de cursos.
 
-Cada vez que el usuario se loguea, desloguea, o la aplicación se recarga, este listener se dispara, actualizando el estado user en el Pinia Store.
+- Cumplimiento: CUMPLIDO. El usuario es redirigido a HomeView.vue, donde se listan los cursos de Firestore.
 
-El Router Guard utiliza el estado isAuthenticated del Store para decidir la navegación.
+- Requisito: Menú de navegación (NavBar) con correo de usuario y botón de cierre de sesión.
 
----
+- Cumplimiento: CUMPLIDO. Implementado en Header.vue.
 
-### 3. Componentes y Lógica (Vue/Pinia)
+- Requisito: Al cerrar sesión, redirigir inmediatamente a "Login".
 
-### A. Pinia Store: src/stores/auth.js
+- Cumplimiento: CUMPLIDO. Manejado por el guard de Vue Router al cambiar el estado de autenticación en Pinia.
 
-Este store maneja todo el estado reactivo y la comunicación directa con Firebase.
+- Requisito: Utilizar Vue Router para controlar y proteger las rutas.
 
-Estado Clave: user (objeto o null), isAuthenticated (getter), loading (boolean), error (string o null).
-
-loginUser(email, password): Llama a signInWithEmailAndPassword. No realiza la redirección.
-
-registerUser(email, password): Llama a createUserWithEmailAndPassword. No realiza la redirección.
-
-logoutUser(): Llama a signOut(auth). El listener de Firebase se encarga de actualizar el estado. No realiza la redirección.
-
-### B. Componentes de Acceso: Login.vue y Register.vue
-
-Ambos componentes:
-
-Llaman a la acción correspondiente del Store (authStore.loginUser() o authStore.registerUser()).
-
-Redirección (Éxito): Si la acción del Store finaliza sin errores, el componente utiliza router.push({ name: 'home' }) para navegar a la vista principal.
-
-Error: La plantilla muestra el mensaje de error capturado y almacenado en authStore.error.
-
-### C. Home View: src/views/HomeView.vue
-
-Esta vista es el punto de entrada para usuarios autenticados.
-
-Cierre de Sesión: Define la función handleLogout que llama a authStore.logoutUser() y luego fuerza la redirección usando router.push({ name: 'login' }).
-
-### D. Header: src/components/Header.vue
-
-Es un componente presentacional.
-
-El botón "Cerrar Sesión" emite un evento (@click="emit('logout')") al componente padre (HomeView.vue) para iniciar la lógica de cierre de sesión.
+- Cumplimiento: CUMPLIDO. Se utilizan guards y redireccionamientos para el flujo de la aplicación.
 
 ---
 
-### 4. Protección de Rutas (Vue Router)
+## 🚀 Características Principales
 
-El archivo src/router/index.js incluye un Navigation Guard global (router.beforeEach) que implementa la protección de rutas.
+El proyecto se compone de los siguientes módulos:
 
-Rutas Privadas (requiresAuth: true): Rutas como /home (y /admin a futuro) solo son accesibles si authStore.isAuthenticated es true. De lo contrario, redirige a /login.
+### Autenticación:
 
-Rutas Públicas (requiresAuth: false): Rutas como /login y /register solo son accesibles si authStore.isAuthenticated es false. Si el usuario ya está logueado, redirige a /home.
+- Funcionalidad: Registro, Login y Cierre de Sesión seguro. Roles definidos (Admin / Usuario).
+
+- Tecnologías Clave: Firebase Auth, Pinia Store (useAuthStore).
+
+### CRUD de Cursos:
+
+- Funcionalidad: Creación, Lectura (en tiempo real), Edición y Eliminación de cursos.
+
+- Tecnologías Clave: Firestore, Pinia Store (useCursoStore).
+
+### Navegación:
+
+- Funcionalidad: Rutas protegidas (guards) y navegación dinámica en el Header según el rol.
+
+- Tecnologías Clave: Vue Router, Propiedad isAdmin.
+
+### UX/UI:
+
+- Funcionalidad: Componentes modales y sistema de notificaciones Toast para feedback al usuario.
+
+- Tecnologías Clave: Vue Components, Pinia Store (useNotificationStore).
+
+---
+
+### 🛠️ Configuración y Ejecución del Proyecto
+
+### Requisitos
+
+- Node.js (versión recomendada LTS)
+
+- Una cuenta de Firebase con Firestore y Authentication habilitados.
+
+### 1. Clonar el Repositorio e Instalar Dependencias
+
+- git clone [https://github.com/GRomanD3v/M7-ABPRO2]
+- cd adweb-online
+- npm install
+
+
+### 2. Configuración de Firebase
+
+- Abre src/firebase/init.js y reemplaza los placeholders con tu configuración real de Firebase:
+
+```// src/firebase/init.js
+const firebaseConfig = {
+    apiKey: "TU_API_KEY",
+    authDomain: "TU_AUTH_DOMAIN",
+    projectId: "TU_PROJECT_ID",
+    // ... otros campos
+};
+```
+
+### 3. Definición del Rol de Administrador
+
+- Para que la aplicación reconozca a un usuario como administrador, debes configurar el getter isAdmin en tu Pinia Store.
+
+- Abre src/stores/auth.js y actualiza la variable ADMIN_EMAIL con el correo que usaste para registrar tu cuenta de administrador:
+
+```
+// src/stores/auth.js
+// ...
+const ADMIN_EMAIL = 'tu_correo_de_admin_aqui@dominio.com';
+
+getters: {
+    isAdmin: (state) => {
+        return state.user && state.user.email === ADMIN_EMAIL;
+    },
+    // ...
+}
+// ...
+```
+
+### 4. Ejecutar la Aplicación
+
+- npm run dev
+
+
+### 🔑 Flujo de Administración (Navegación Dinámica)
+
+- La funcionalidad clave del proyecto se basa en la segregación de roles y la navegación condicional en el Header.vue.
+
+- Acceso al Panel de Administración
+
+- Inicia sesión con la cuenta definida como Administrador (ADMIN_EMAIL).
+
+- Una vez logueado, el componente Header.vue detectará el rol isAdmin: true.
+
+- El botón "Panel Admin" aparecerá en el encabezado.
+
+### Lógica del Header.vue
+
+- El Header.vue maneja la visibilidad de los botones de navegación según la vista actual del usuario:
+
+- Si la Vista Actual es / (home):
+
+- Botón Visible: Panel Admin (Botón Amarillo)
+
+- Acción: Navega a /admin
+
+- Si la Vista Actual es /admin (admin) o /admin/editar/:id:
+
+- Botón Visible: Ver Cursos (Botón Azul)
+
+- Acción: Navega de vuelta a /
+
+- Proceso CRUD (Creación, Edición y Eliminación)
+
+### Crear un Curso:
+
+- En la vista /admin, haz clic en "Agregar Nuevo Curso".
+
+- Se abre el CourseModal.vue.
+
+- Al guardar, se ejecuta cursoStore.agregarCurso(data), enviando el nuevo documento a la colección cursos de Firestore.
+
+### Edición de Curso:
+
+- Desde la tabla en /admin, el botón de lápiz redirige a /admin/editar/:id.
+
+- EditCourseView.vue carga el formulario pre-llenado y ejecuta la acción de actualización.
+
+### Eliminación de Curso:
+
+- El botón de bote de basura en /admin ejecuta la acción cursoStore.eliminarCurso(id) tras una confirmación.
+
+---
+### 💡 Notas de Implementación
+
+- Real-Time (Tiempo Real): La vista HomeView y AdminView utilizan el listener onSnapshot de Firestore, asegurando que cualquier cambio en la base de datos se refleje en la UI inmediatamente.
+
+- Notificaciones: Todas las operaciones CRUD utilizan el useNotificationStore para mostrar mensajes de éxito o error (Toast/Toastr) en lugar de usar alert().

@@ -7,29 +7,33 @@ import {
     createUserWithEmailAndPassword 
 } from 'firebase/auth'; 
 
+// 🚨 ESTABLECE AQUÍ TU CORREO DE ADMINISTRADOR REAL
+// Reemplaza esta cadena con el email exacto que usaste para registrar la cuenta de admin en Firebase.
+const ADMIN_EMAIL = 'hola@groman.cl'; 
+
 export const useAuthStore = defineStore('auth', {
     state: () => ({
-        // El objeto de usuario de Firebase o null
         user: null, 
-        // Bandera para mostrar spinners
         loading: false, 
-        // Mensaje de error para la UI
         error: null,
-        // Bandera para indicar si la verificación inicial de Auth ha terminado
         isAuthReady: false, 
     }),
     
     getters: {
         isAuthenticated: (state) => !!state.user,
+        // Lógica FINAL: Retorna true si el email del usuario logueado coincide con el ADMIN_EMAIL.
+        isAdmin: (state) => {
+            // Utilizamos el método toLowerCase() para evitar errores por mayúsculas/minúsculas.
+            return state.user && state.user.email && state.user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase();
+        }
     },
 
     actions: {
-        // Inicializa el listener de Firebase Auth. DEBE llamarse una vez en main.js o App.vue
+        // Inicializa el listener de Firebase Auth.
         initAuth() {
-            if (this.isAuthReady) return; // Evita inicializar dos veces
+            if (this.isAuthReady) return; 
             this.loading = true;
             
-            // onAuthStateChanged escucha la persistencia de la sesión de Firebase
             onAuthStateChanged(auth, (user) => { 
                 this.user = user;
                 this.isAuthReady = true;
@@ -43,7 +47,6 @@ export const useAuthStore = defineStore('auth', {
             this.loading = true;
             this.error = null;
             try {
-                // Usamos la instancia 'auth' importada para iniciar sesión
                 await signInWithEmailAndPassword(auth, email, password); 
             } catch (err) {
                 this.error = this.getFriendlyErrorMessage(err.code); 
@@ -67,15 +70,12 @@ export const useAuthStore = defineStore('auth', {
             }
         },
 
-        // Acción para el cierre de sesión (SIN REDIRECCIÓN AQUÍ)
+        // Acción para el cierre de sesión 
         async logoutUser() {
             this.loading = true;
             this.error = null;
             try {
-                // Solo llama a signOut de Firebase
                 await signOut(auth);
-                
-                // onAuthStateChanged detectará el cambio y establecerá this.user = null.
             } catch (err) {
                 this.error = 'No se pudo cerrar la sesión.';
                 console.error("Firebase Logout Error:", err);

@@ -1,138 +1,138 @@
-// src/stores/curso.js
 import { defineStore } from 'pinia';
-import { db } from '@/firebase/init.js'; // Importa la instancia de Firestore
-import { useAuthStore } from './auth';
-// **Importante:** Agregamos 'getDocs' para fetchCursos (si no está)
-import { collection, getDocs, getDoc, addDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore'; 
+import { db } from '../firebase/init'; // Importa la instancia de Firestore
+import { 
+    collection, 
+    onSnapshot, 
+    addDoc, 
+    deleteDoc, 
+    doc, 
+    updateDoc 
+} from 'firebase/firestore'; 
 
 export const useCursoStore = defineStore('curso', {
     state: () => ({
+        // Lista principal de cursos
         cursos: [],
-        isLoading: false,
+        // Indica si los cursos se están cargando
+        loadingCourses: false, 
+        // Mensaje de error para operaciones de cursos
         error: null,
+        // Listener de Firestore (para desuscribirse cuando no sea necesario)
+        unsubscribe: null, 
     }),
-
-    getters: {
-        totalCursos: (state) => state.cursos.length,
-        cursosActivos: (state) => state.cursos.filter(c => c.activo),
-        // Getter para encontrar un curso por ID directamente en el estado
-        getCursoById: (state) => (id) => {
-            return state.cursos.find(curso => curso.id === id);
-        }
-    },
     
+    getters: {
+        // Devuelve la lista de cursos disponibles
+        cursosDisponibles: (state) => state.cursos,
+    },
+
     actions: {
-        // ------------------------------------------------------------------
-        // A) LEER TODOS (Fetch/Get) - Obtener todos los cursos de Firestore
-        // ------------------------------------------------------------------
-        async fetchCursos() {
-            this.isLoading = true;
-            this.error = null;
-            try {
-                const cursosCollection = collection(db, 'cursos');
-                const snapshot = await getDocs(cursosCollection);
-                
-                this.cursos = snapshot.docs.map(doc => ({
-                    id: doc.id,
-                    ...doc.data()
-                }));
+        // 1. OBTENER CURSOS EN TIEMPO REAL (onSnapshot)
+        // Esta acción DEBE ser llamada para iniciar la escucha de la base de datos.
+        iniciarListenerCursos() {
+            if (this.unsubscribe) return; // Evitar iniciar múltiples listeners
 
-            } catch (err) {
-                console.error("Error al obtener cursos:", err);
-                this.error = "No se pudieron cargar los cursos. Verifique la conexión a Firebase.";
-            } finally {
-                this.isLoading = false;
+            this.loadingCourses = true;
+            this.error = null;
+            
+            // Referencia a la colección 'cursos' en Firestore
+            const cursosCollectionRef = collection(db, 'cursos');
+
+            // onSnapshot es la clave para la lectura en tiempo real
+            this.unsubscribe = onSnapshot(cursosCollectionRef, (snapshot) => {
+                const cursosArray = [];
+                snapshot.forEach((doc) => {
+                    // Mapeamos los datos, añadiendo el 'id' de Firestore
+                    cursosArray.push({ id: doc.id, ...doc.data() }); 
+                });
+                
+                this.cursos = cursosArray;
+                this.loadingCourses = false;
+                console.log('Cursos actualizados desde Firestore.');
+            }, (err) => {
+                // Manejo de errores del listener
+                this.error = 'Error al obtener los cursos: ' + err.message;
+                this.loadingCourses = false;
+                console.error("Firestore Listener Error:", err);
+            });
+        },
+        
+        // Función para detener la escucha de cursos (útil al cerrar sesión o desmontar el HomeView)
+        detenerListenerCursos() {
+            if (this.unsubscribe) {
+                this.unsubscribe();
+                this.unsubscribe = null;
+                console.log('Listener de cursos detenido.');
             }
         },
 
-        // ------------------------------------------------------------------
-        // A.1) LEER POR ID (Fetch by ID) - Obtener un curso específico de Firestore
-        // ------------------------------------------------------------------
-        async fetchCursoById(id) {
-            this.error = null;
-            try {
-                const cursoRef = doc(db, 'cursos', id); // 1. Crea la referencia al documento
-                const cursoSnap = await getDoc(cursoRef); // 2. Obtiene el documento
-                
-                if (cursoSnap.exists()) {
-                    // Retorna el objeto del curso (útil para la edición)
-                    return { id: cursoSnap.id, ...cursoSnap.data() };
-                } else {
-                    this.error = `Curso con ID ${id} no encontrado.`;
-                    return null;
-                }
-            } catch (err) {
-                console.error(`Error al obtener curso ${id}:`, err);
-                this.error = "Fallo al obtener el curso específico.";
-                return null;
-            }
-        },
-
-        // ------------------------------------------------------------------
-        // B) CREAR (Add) - Agregar un nuevo curso a Firestore
-        // ------------------------------------------------------------------
+        // 2. CREAR CURSO (Add)
         async agregarCurso(nuevoCurso) {
             try {
-                const auth = useAuthStore();
                 const cursosCollection = collection(db, 'cursos');
-                const docRef = await addDoc(cursosCollection, nuevoCurso);
+                // Añade una marca de tiempo y cualqiuer otro campo por defecto
+                const cursoConMetadatos = {
+                    ...nuevoCurso,
+                    createdAt: new Date().toISOString(), //Opcional marca de tiempo
+                };
 
-                // Actualiza Pinia con el nuevo curso (incluyendo el ID generado)
-                this.cursos.push({ 
-                    id: docRef.id, 
-                    ...nuevoCurso 
+                const docRef = await addDoc(cursosCollection, cursoConMetadatos);
+                // Nota: Con la implementación de onSnapshot/listener, la actualización 
+                // del estado 'this.cursos.push(...)' es manejada automáticamente por el listener,
+                // pero si tuvieras que hacerlo manualmente sería así:
+                /*
+                    this.cursos.push({ 
+                        id: docRef.id, 
+                        ...cursoConMetadatos 
                 });
+                */
+
+                // devuelve éxito
+                return { success: true, id: docRef.id };
 
             } catch (err) {
-                console.error("Error al agregar curso:", err);
-                this.error = "Fallo al crear el curso.";
+            console.error("Error al agregar curso:", err);
+            this.error = "Fallo al crear el curso.";
+            // Devuelve error
+            return { success: false, error: err.message };
             }
         },
 
-        // ------------------------------------------------------------------
-        // C) ACTUALIZAR (Update) - Modificar un curso existente
-        // ------------------------------------------------------------------
-        async actualizarCurso(cursoId, datosActualizados) {
+        // 3. ACTUALIZAR CURSO (updateDoc)
+        async editarCurso(id, newData) {
             this.error = null;
+            this.loadingCourses = true;
             try {
-                // 1. Crea la referencia al documento
-                const cursoRef = doc(db, 'cursos', cursoId); 
-                
-                // 2. Actualiza el documento en Firestore
-                await updateDoc(cursoRef, datosActualizados);
-
-                // 3. Actualiza el estado de Pinia
-                const index = this.cursos.findIndex(c => c.id === cursoId);
-                if (index !== -1) {
-                    // Reemplaza el objeto en el array con los datos actualizados
-                    this.cursos[index] = { ...this.cursos[index], ...datosActualizados };
-                }
-
+                // Referencia al documento específico
+                const cursoRef = doc(db, 'cursos', id);
+                await updateDoc(cursoRef, newData);
+                // onSnapshot se encarga de la actualización de estado
+                return { success: true };
             } catch (err) {
-                console.error(`Error al actualizar curso ${cursoId}:`, err);
-                this.error = "Fallo al actualizar el curso.";
+                this.error = 'Error al editar el curso.';
+                console.error("Firestore Update Error:", err);
+                return { success: false, error: this.error };
+            } finally {
+                this.loadingCourses = false;
             }
         },
 
-        // ------------------------------------------------------------------
-        // D) ELIMINAR (Delete) - Borrar un curso
-        // ------------------------------------------------------------------
-        async eliminarCurso(cursoId) {
+        // 4. ELIMINAR CURSO (deleteDoc)
+        async eliminarCurso(id) {
             this.error = null;
+            this.loadingCourses = true;
             try {
-                // 1. Crea la referencia al documento
-                const cursoRef = doc(db, 'cursos', cursoId);
-                
-                // 2. Elimina el documento de Firestore
+                const cursoRef = doc(db, 'cursos', id);
                 await deleteDoc(cursoRef);
-
-                // 3. Elimina el curso del estado de Pinia
-                this.cursos = this.cursos.filter(c => c.id !== cursoId);
-
+                // onSnapshot se encarga de la actualización de estado
+                return { success: true };
             } catch (err) {
-                console.error(`Error al eliminar curso ${cursoId}:`, err);
-                this.error = "Fallo al eliminar el curso.";
+                this.error = 'Error al eliminar el curso.';
+                console.error("Firestore Delete Error:", err);
+                return { success: false, error: this.error };
+            } finally {
+                this.loadingCourses = false;
             }
-        }
+        },
     }
 });
