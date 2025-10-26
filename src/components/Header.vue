@@ -1,41 +1,80 @@
 <script setup>
-import { defineProps, defineEmits } from 'vue';
+import { computed } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
+import { storeToRefs } from 'pinia';
+import { useAuthStore } from '../stores/auth';
 
-// 1. Definir las props que recibirá del componente padre (HomeView)
+const authStore = useAuthStore();
+const router = useRouter();
+const route = useRoute(); // Inicializar useRoute
+
+// Importamos las propiedades reactivas del store de autenticación, incluyendo 'isAdmin'
+const { user, isAuthenticated, isAdmin } = storeToRefs(authStore);
+
+// Props que recibe el componente (solo el nombre de usuario formateado)
 const props = defineProps({
-    // La prop ya no es 'required' porque HomeView ahora garantiza que siempre envía un string (email o 'Invitado')
     userName: {
         type: String,
-        default: 'Invitado' // Usamos un default por seguridad
+        required: true
     }
 });
 
-// 2. Definir los eventos que emitirá al componente padre
+// Eventos que emite el componente (solo 'logout')
 const emit = defineEmits(['logout']);
 
-// Función que emite el evento para que el padre lo maneje
-const onLogoutClick = () => {
-    // Esto llamará a handleLogout en HomeView.vue
-    emit('logout');
+// Lógica para saber en qué vista estamos
+const isInHomeView = computed(() => route.name === 'home');
+const isInAdminView = computed(() => route.name === 'admin');
+
+
+// Lógica para redirigir al panel de administración
+const goToAdmin = () => {
+    // Asume que tienes una ruta con name: 'admin' configurada en tu router
+    router.push({ name: 'admin' });
+};
+
+// Lógica para redirigir a la vista pública de cursos (Home)
+const goToHome = () => {
+    router.push({ name: 'home' });
 };
 </script>
 
 <template>
-    <!-- Navbar y Header  -->
-    <header class="shadow-md py-3 bg-purple-gradient text-white">
-        <div class="container d-flex justify-content-between align-items-center">
-            <!-- Título: Lo mantenemos blanco para el fondo oscuro -->
-            <h1 class="h4 fw-bold mb-0">Adweb Online</h1>
+    <header class="bg-primary text-white shadow-sm">
+        <div class="container d-flex justify-content-between align-items-center py-3">
+            <!-- Logo/Título de la aplicación -->
+            <h1 class="h4 mb-0 fw-bold">Adweb Online</h1>
+            
+            <!-- Controles de Usuario y Navegación -->
             <div class="d-flex align-items-center">
-                <!-- Se usa la prop 'userName' -->
-                <span class="me-3 d-none d-sm-inline text-light">
-                    Bienvenido, <strong class="fw-semibold">{{ props.userName }}</strong>
-                </span>
-                <!-- Se llama a la función local que emite el evento 'logout' -->
-                <!-- Botón: Usamos un botón de texto blanco o uno que contraste bien -->
+                
+                <!-- BOTÓN: Ver Cursos (Visible solo para Admins Y en la vista Admin o Edición) -->
                 <button 
-                    @click="onLogoutClick" 
-                    class="btn btn-sm btn-light fw-semibold text-danger"
+                    v-if="isAuthenticated && isAdmin && isInAdminView"
+                    @click="goToHome" 
+                    class="btn btn-info btn-sm me-3 fw-semibold text-white"
+                >
+                    <i class="bi bi-eye-fill me-1"></i> Ver Cursos
+                </button>
+
+                <!-- BOTÓN: Panel Admin (Visible solo para Admins Y NO en la vista Admin) -->
+                <button 
+                    v-if="isAuthenticated && isAdmin && !isInAdminView"
+                    @click="goToAdmin" 
+                    class="btn btn-warning btn-sm me-3 fw-semibold"
+                >
+                    <i class="bi bi-gear-fill me-1"></i> Panel Admin
+                </button>
+                
+                <!-- Saludo al Usuario -->
+                <span class="me-3 d-none d-sm-inline">
+                    Bienvenido, <span class="fw-semibold text-warning">{{ userName }}</span>
+                </span>
+
+                <!-- Botón de Cerrar Sesión -->
+                <button 
+                    @click="emit('logout')" 
+                    class="btn btn-danger btn-sm fw-semibold"
                 >
                     <i class="bi bi-box-arrow-right me-1"></i> Cerrar Sesión
                 </button>
@@ -45,25 +84,9 @@ const onLogoutClick = () => {
 </template>
 
 <style scoped>
-
-/* El estilo responsive del header se mueve aquí */
-@media (max-width: 576px) {
-    .container {
-        padding: 0 1rem;
-    }
-    header .container {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-    header h1 {
-        margin-bottom: 0.5rem;
-    }
-    header .d-flex {
-        width: 100%;
-        justify-content: space-between;
-    }
-    header span {
-        font-size: 0.85rem;
-    }
+/* Estilos para darle un toque visual al encabezado */
+header {
+    /* Gradiente suave */
+    background: linear-gradient(90deg, #007bff, #0056b3); 
 }
 </style>

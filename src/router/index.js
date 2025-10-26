@@ -22,7 +22,19 @@ const routes = [
         component: () => import('../views/HomeView.vue'), // Tu interfaz principal
         meta: { requiresAuth: true } // REQUIERE autenticación
     },
-    // Añade el resto de tus rutas (cursos, detalle, etc.) y protégelas si es necesario
+    {
+        path: '/admin',
+        name: 'admin',
+        component: () => import('../views/AdminView.vue'),
+        meta: { requiresAuth: true } // Requiere Autenticación
+    },
+    {
+        path: '/admin/editar/:id', // :id es el parámetro dinámico del ID del curso
+        name: 'editCourse',
+        component: () => import('../views/EditCourseView.vue'),
+        meta: { requiresAuth: true }    
+    },
+    
 ];
 
 const router = createRouter({
