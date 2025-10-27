@@ -13,7 +13,7 @@ const router = useRouter();
 
 // 2. reactividad de auth y cursos
 const { user, isAuthenticated } = storeToRefs(authStore);
-const { cursosDisponibles, loadingCurses } = storeToRefs(cursoStore); // cursos reactivos
+const { cursosDisponibles, loadingCourses } = storeToRefs(cursoStore); // cursos reactivos
 
 // 3. lógica del header: Nombre de usuario
 // Usamos computed para que el nombre se actualice automáticamente si el email del usuario cambia.
@@ -91,7 +91,7 @@ onUnmounted(() => {
                 <i class="bi bi-clock me-1"></i> {{ course.duracion }}
               </span>
               <span class="text-secondary small fw-bold">
-                ${{ course.precio }}
+                ${{  Number(course.precio).toLocaleString('es-CL') }}
               </span>
             </div>
           </div>

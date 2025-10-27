@@ -28,7 +28,7 @@ const defaultCourse = {
     cupos: 0,
     inscritos: 0,
     img: 'https://placehold.co/400x200/222/FFF?text=Curso+Nuevo', // URL de imagen por defecto
-    estado: true // Activo por defecto
+    estado: null // Vacío por defecto, el administrador decide el estado al crear el curso
 };
 
 // Objeto reactivo que modela los datos del formulario
@@ -120,11 +120,21 @@ const handleSubmit = () => {
 
                             <div class="col-12">
                                 <div class="form-check">
-                                    <input v-model="courseData.estado" class="form-check-input" type="checkbox" id="estadoCheck">
+                                    <input v-model="courseData.estado" class="form-check-input" type="radio" id="estadoCheck" :value="true">
                                     <label class="form-check-label" for="estadoCheck">
                                         Curso Activo / Disponible
                                     </label>
                                 </div>
+
+                                <div class="form-check">
+                                    <input v-model="courseData.estado" class="form-check-input" type="radio" id="estadoCerrado" :value="false">
+                                    <label class="form-check-label" for="estadoCerrado">
+                                        Curso Cerrado / No disponible
+                                    </label>
+                                </div>
+
+
+
                             </div>
                         </div>
 
