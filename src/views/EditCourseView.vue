@@ -27,35 +27,38 @@ const isLoadingData = ref(true);
 const courseId = route.params.id;
 
 onMounted(() => {
-    // Es crucial que el listener esté activo para que cursosDisponibles se llene
-    cursoStore.iniciarListenerCursos();
+  // Es crucial que el listener esté activo para que cursosDisponibles se llene
+  cursoStore.iniciarListenerCursos();
 });
 
 // Usamos un watcher para esperar a que los cursos se carguen desde Firestore
-watch([cursosDisponibles, loadingCourses], ([newCursos, newLoading], [oldCursos, oldLoading]) => {
+watch(
+  [cursosDisponibles, loadingCourses],
+  ([newCursos, newLoading]) => {
     // Si ya no está cargando O si el listener ya retornó datos
     if (!newLoading && newCursos.length > 0 && courseData.value === null) {
-        const course = newCursos.find(c => c.id === courseId);
-        
-        if (course) {
-            // Clonamos el objeto para evitar mutar el estado del store directamente
-            courseData.value = { ...course }; 
-            isLoadingData.value = false;
-        } else {
-            // Si el curso no existe (por si el usuario ingresa un ID incorrecto)
-            notificationStore.showNotification({
-                type: 'error',
-                message: `❌ Curso con ID ${courseId} no encontrado.`
-            });
-            router.push({ name: 'admin' });
-        }
+      const course = newCursos.find(c => c.id === courseId);
+
+      if (course) {
+        // Clonamos el objeto para evitar mutar el estado del store directamente
+        courseData.value = { ...course };
+        isLoadingData.value = false;
+      } else {
+        // Si el curso no existe (por si el usuario ingresa un ID incorrecto)
+        notificationStore.showNotification({
+          type: 'error',
+          message: `❌ Curso con ID ${courseId} no encontrado.`
+        });
+        router.push({ name: 'admin' });
+      }
     }
-}, { immediate: true });
+  }, { immediate: true }
+);
 
 
 // 5. Lógica del Header
 const userNameDisplay = computed(() => {
-    return user.value && user.value.email ? user.value.email.split("@")[0] : "Admin";
+  return user.value && user.value.email ? user.value.email.split("@")[0] : "Admin";
 });
 
 const handleLogout = async () => {
@@ -63,43 +66,67 @@ const handleLogout = async () => {
   router.push({ name: "login" });
 };
 
+//Modal de confirmación agregar curso
+const isConfirmModalOpen = ref(false);
+const pendingUpdate = ref(null);
+
+const openConfirmModal = () => {
+  isConfirmModalOpen.value = true;
+};
+
+const closeConfirmModal = () => {
+  isConfirmModalOpen.value = false;
+};
+
+const confirmUpdateCourse = async () => {
+  closeConfirmModal();
+  await updateCourseConfirmed();
+};
+
+
 // 6. Lógica de Edición (CRUD)
 const handleUpdateCourse = async () => {
-    if (!courseData.value || !courseId) return;
+  if (!courseData.value || !courseId) return;
 
-    // Validación básica
-    if (courseData.value.inscritos > courseData.value.cupos) {
-        notificationStore.showNotification({
-            type: 'error',
-            message: "⚠️ Los inscritos no pueden superar los cupos disponibles."
-        });
-        return;
-    }
+  // Validación básica
+  if (courseData.value.inscritos > courseData.value.cupos) {
+    notificationStore.showNotification({
+      type: 'error',
+      message: "⚠️ Los inscritos no pueden superar los cupos disponibles."
+    });
+    return;
+  }
 
-    // 6.1 Separamos el ID del resto de los datos (la ID no se debe enviar para actualizar)
-    const { id, ...dataToUpdate } = courseData.value;
-    
-    // 6.2 Llamamos a la acción de edición en el store
-    const result = await cursoStore.editarCurso(courseId, dataToUpdate);
+  //Confirmación antes de actualizar
+  pendingUpdate.value = { ...courseData.value };
+  openConfirmModal();
+};
 
-    if (result.success) {
-        notificationStore.showNotification({
-            type: 'success',
-            message: `✅ Curso '${courseData.value.nombre}' actualizado con éxito.`
-        });
-        // Redirigir de vuelta al panel de administración
-        router.push({ name: 'admin' });
-    } else {
-        notificationStore.showNotification({
-            type: 'error',
-            message: '❌ Error al actualizar el curso.'
-        });
-    }
+// 6.1 Separamos el ID del resto de los datos (la ID no se debe enviar para actualizar)
+const updateCourseConfirmed = async () => {
+  const { id, ...dataToUpdate } = courseData.value;
+
+  // 6.2 Llamamos a la acción de edición en el store
+  const result = await cursoStore.editarCurso(courseId, dataToUpdate);
+
+  if (result.success) {
+    notificationStore.showNotification({
+      type: 'success',
+      message: `✅ Curso '${courseData.value.nombre}' actualizado con éxito.`
+    });
+    // Redirigir de vuelta al panel de administración
+    router.push({ name: 'admin' });
+  } else {
+    notificationStore.showNotification({
+      type: 'error',
+      message: '❌ Error al actualizar el curso.'
+    });
+  }
 };
 
 // 7. Navegación
 const goBack = () => {
-    router.push({ name: 'admin' });
+  router.push({ name: 'admin' });
 };
 </script>
 
@@ -123,7 +150,7 @@ const goBack = () => {
       <!-- Formulario de Edición -->
       <div v-else class="card shadow-lg rounded-3 border-0 mx-auto" style="max-width: 800px;">
         <div class="card-header bg-secondary text-white fw-bold">
-            Editando: {{ courseData.nombre }} ({{ courseData.codigo }})
+          Editando: {{ courseData.nombre }} ({{ courseData.codigo }})
         </div>
         <form @submit.prevent="handleUpdateCourse" class="card-body">
           <div class="row g-4">
@@ -140,9 +167,11 @@ const goBack = () => {
             <!-- URL Imagen -->
             <div class="col-12">
               <label for="imgUrl" class="form-label fw-semibold">URL de la Imagen del Curso</label>
-              <input v-model="courseData.img" type="url" class="form-control" id="imgUrl" placeholder="http://..." required />
+              <input v-model="courseData.img" type="url" class="form-control" id="imgUrl" placeholder="http://..."
+                required />
               <div class="mt-2 text-center">
-                <img :src="courseData.img" alt="Vista previa" class="img-thumbnail rounded-3" style="max-height: 150px; width: auto;">
+                <img :src="courseData.img" alt="Vista previa" class="img-thumbnail rounded-3"
+                  style="max-height: 150px; width: auto;">
               </div>
             </div>
 
@@ -153,7 +182,8 @@ const goBack = () => {
             </div>
             <div class="col-md-3">
               <label for="precio" class="form-label fw-semibold">Costo ($)</label>
-              <input v-model.number="courseData.precio" type="number" class="form-control" id="precio" min="0" required />
+              <input v-model.number="courseData.precio" type="number" class="form-control" id="precio" min="0"
+                required />
             </div>
             <div class="col-md-3">
               <label for="cupos" class="form-label fw-semibold">Cupos Máximos</label>
@@ -161,30 +191,42 @@ const goBack = () => {
             </div>
             <div class="col-md-3">
               <label for="inscritos" class="form-label fw-semibold">Inscritos Actuales</label>
-              <input v-model.number="courseData.inscritos" type="number" class="form-control" id="inscritos" min="0" required />
+              <input v-model.number="courseData.inscritos" type="number" class="form-control" id="inscritos" min="0"
+                required />
             </div>
 
             <!-- Descripción -->
             <div class="col-12">
               <label for="descripcion" class="form-label fw-semibold">Descripción Detallada</label>
-              <textarea v-model="courseData.descripcion" class="form-control" id="descripcion" rows="3" required></textarea>
+              <textarea v-model="courseData.descripcion" class="form-control" id="descripcion" rows="3"
+                required></textarea>
             </div>
 
-            <!-- Estado (Checkbox) -->
+            <!-- Estado (Radio) -->
             <div class="col-12">
               <div class="form-check">
-                <input v-model="courseData.estado" class="form-check-input" type="checkbox" id="estadoCheck" />
+                <input v-model="courseData.estado" class="form-check-input" type="radio" id="estadoCheck"
+                  value="true" />
                 <label class="form-check-label fw-semibold" for="estadoCheck">
                   Curso Activo / Disponible
                 </label>
               </div>
+              <div class="form-check">
+                <input v-model="courseData.estado" class="form-check-input" type="radio" id="estadoCerrado"
+                  value="false" />
+                <label class="form-check-label fw-semibold" for="estadoCerrado">
+                  Curso Cerrado / No disponible
+                </label>
+              </div>
+
+
             </div>
           </div>
-          
+
           <!-- Botones de Acción -->
           <div class="d-flex justify-content-between mt-4 border-top pt-3">
             <button type="button" class="btn btn-outline-secondary" @click="goBack">
-                <i class="bi bi-arrow-left-circle me-2"></i> Volver
+              <i class="bi bi-arrow-left-circle me-2"></i> Volver
             </button>
             <button type="submit" class="btn btn-success fw-semibold">
               <i class="bi bi-save me-2"></i> Guardar Cambios
@@ -192,15 +234,49 @@ const goBack = () => {
           </div>
         </form>
       </div>
+
+      <!-- MODAL DE CONFIRMACIÓN -->
+      <div v-if="isConfirmModalOpen" class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Confirmar actualización</h5>
+              <button type="button" class="btn-close" @click="closeConfirmModal"></button>
+            </div>
+            <div class="modal-body">
+              <p>¿Deseas guardar los cambios en el curso <strong>{{ pendingUpdate?.nombre }}</strong>?</p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" @click="closeConfirmModal">
+                Cancelar
+              </button>
+              <button type="button" class="btn btn-success" @click="confirmUpdateCourse">
+                Guardar Cambios
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+
+
     </main>
   </div>
+
+
 </template>
 
 <style scoped>
 .edit-view-wrapper {
   background-color: #f8f9fa !important;
 }
+
 .card-header {
-    background-color: #6c757d !important;
+  background-color: #6c757d !important;
+}
+
+.modal {
+  display: block;
 }
 </style>

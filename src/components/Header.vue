@@ -73,7 +73,7 @@ const goToHome = () => {
 
                 <!-- Botón de Cerrar Sesión -->
                 <button 
-                    @click="emit('logout')" 
+                    @click="$emit('logout')" 
                     class="btn btn-danger btn-sm fw-semibold"
                 >
                     <i class="bi bi-box-arrow-right me-1"></i> Cerrar Sesión
