@@ -67,7 +67,7 @@ const handleRegister = async () => {
               <label for="email" class="form-label fw-semibold">
                 <i class="bi bi-envelope-fill text-success"></i> Correo electrónico
               </label>
-              <input v-model="email" type="email" class="form-control form-control-lg" id="email" placeholder="tu@email.com" required />
+              <input v-model="email" type="email" class="form-control form-control-lg" id="email" placeholder="tu@email.com" required autocomplete="email" />
             </div>
 
             <!-- Contraseña -->
@@ -75,7 +75,7 @@ const handleRegister = async () => {
               <label for="password" class="form-label fw-semibold">
                 <i class="bi bi-lock-fill text-success"></i> Contraseña
               </label>
-              <input v-model="password" type="password" class="form-control form-control-lg" id="password" placeholder="Mínimo 6 caracteres" required minlength="6" />
+              <input v-model="password" type="password" class="form-control form-control-lg" id="password" placeholder="Mínimo 6 caracteres" required minlength="6" autocomplete="new-password" />
               <small class="text-muted">La contraseña debe tener al menos 6 caracteres</small>
             </div>
 
@@ -84,7 +84,7 @@ const handleRegister = async () => {
               <label for="confirmPassword" class="form-label fw-semibold">
                 <i class="bi bi-lock-check-fill text-success"></i> Confirmar Contraseña
               </label>
-              <input v-model="confirmPassword" type="password" class="form-control form-control-lg" id="confirmPassword" placeholder="Confirma tu contraseña" required />
+              <input v-model="confirmPassword" type="password" class="form-control form-control-lg" id="confirmPassword" placeholder="Confirma tu contraseña" required autocomplete="new-password" />
             </div>
 
             <!-- Error Alert: Muestra error local o el error del Store (Firebase) -->

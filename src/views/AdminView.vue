@@ -16,7 +16,7 @@ const router = useRouter();
 const notificationStore = useNotificationStore();
 
 // 2. Reactividad
-const { user } = storeToRefs(authStore);
+const { user, isAuthenticated } = storeToRefs(authStore);
 const { cursosDisponibles, loadingCourses } = storeToRefs(cursoStore);
 
 // 3. Lógica del Header: Nombre de Usuario
@@ -27,6 +27,9 @@ const userNameDisplay = computed(() => {
 // 4. Lógica de Cierre de Sesión
 const handleLogout = async () => {
     await authStore.logoutUser();
+    if (!isAuthenticated.value) {
+    router.push({ name: "login" });
+  }
 };
 
 // 5. Lógica del Modal de Administración

@@ -1,138 +1,105 @@
 import { defineStore } from 'pinia';
 import { db } from '../firebase/init'; // Importa la instancia de Firestore
-import { 
-    collection, 
-    onSnapshot, 
-    addDoc, 
-    deleteDoc, 
-    doc, 
-    updateDoc 
-} from 'firebase/firestore'; 
+import { collection, onSnapshot, query, addDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+
+
+const CURSOS_COLLECTION = 'cursos';
 
 export const useCursoStore = defineStore('curso', {
     state: () => ({
         // Lista principal de cursos
         cursos: [],
         // Indica si los cursos se están cargando
-        loadingCourses: false, 
-        // Mensaje de error para operaciones de cursos
-        error: null,
-        // Listener de Firestore (para desuscribirse cuando no sea necesario)
-        unsubscribe: null, 
+        loading: true,
+        // Almacenamos la función de unsubscribe para detener la escucha
+        unsub: null, 
     }),
     
     getters: {
         // Devuelve la lista de cursos disponibles
         cursosDisponibles: (state) => state.cursos,
+        loadingCourses: (state) => state.loading,
+        getCursoById: (state) => (id) => state.cursos.find(c => c.id === id),
     },
 
     actions: {
-        // 1. OBTENER CURSOS EN TIEMPO REAL (onSnapshot)
-        // Esta acción DEBE ser llamada para iniciar la escucha de la base de datos.
+        // --- Lógica del Listener ---
         iniciarListenerCursos() {
-            if (this.unsubscribe) return; // Evitar iniciar múltiples listeners
+            if (this.unsub) {
+                // El listener ya está activo, no hacemos nada
+                return;
+            }
 
-            this.loadingCourses = true;
-            this.error = null;
+            this.loading = true;
+            const cursosQuery = query(collection(db, CURSOS_COLLECTION));
             
-            // Referencia a la colección 'cursos' en Firestore
-            const cursosCollectionRef = collection(db, 'cursos');
-
-            // onSnapshot es la clave para la lectura en tiempo real
-            this.unsubscribe = onSnapshot(cursosCollectionRef, (snapshot) => {
+            // Guardamos la función de unsubscribe en this.unsub
+            this.unsub = onSnapshot(cursosQuery, (snapshot) => {
                 const cursosArray = [];
                 snapshot.forEach((doc) => {
-                    // Mapeamos los datos, añadiendo el 'id' de Firestore
-                    cursosArray.push({ id: doc.id, ...doc.data() }); 
+                    cursosArray.push({
+                        id: doc.id,
+                        ...doc.data()
+                    });
                 });
-                
                 this.cursos = cursosArray;
-                this.loadingCourses = false;
-                console.log('Cursos actualizados desde Firestore.');
-            }, (err) => {
-                // Manejo de errores del listener
-                this.error = 'Error al obtener los cursos: ' + err.message;
-                this.loadingCourses = false;
-                console.error("Firestore Listener Error:", err);
+                this.loading = false;
+            }, (error) => {
+                console.error("Firestore Listener Error:", error);
+                // Si hay error (como el de permisos), lo detenemos para evitar bucles
+                this.detenerListenerCursos(); 
             });
         },
-        
-        // Función para detener la escucha de cursos (útil al cerrar sesión o desmontar el HomeView)
+
+        //Detiene el listener de Firestore 
         detenerListenerCursos() {
-            if (this.unsubscribe) {
-                this.unsubscribe();
-                this.unsubscribe = null;
-                console.log('Listener de cursos detenido.');
+            if (this.unsub) {
+                this.unsub(); // Ejecuta la función para detener la escucha
+                this.unsub = null; // Limpiamos la referencia
+                console.log("Firestore Listener detenido correctamente.");
             }
         },
 
-        // 2. CREAR CURSO (Add)
+        // --- Lógica CRUD ---
         async agregarCurso(nuevoCurso) {
             try {
-                const cursosCollection = collection(db, 'cursos');
-                // Añade una marca de tiempo y cualqiuer otro campo por defecto
-                const cursoConMetadatos = {
-                    ...nuevoCurso,
-                    createdAt: new Date().toISOString(), //Opcional marca de tiempo
+                const cursosCollection = collection(db, CURSOS_COLLECTION);
+                
+                const cursoConMetadatos = { 
+                    ...nuevoCurso, 
+                    createdAt: new Date().toISOString(), 
                 };
 
                 const docRef = await addDoc(cursosCollection, cursoConMetadatos);
-                // Nota: Con la implementación de onSnapshot/listener, la actualización 
-                // del estado 'this.cursos.push(...)' es manejada automáticamente por el listener,
-                // pero si tuvieras que hacerlo manualmente sería así:
-                /*
-                    this.cursos.push({ 
-                        id: docRef.id, 
-                        ...cursoConMetadatos 
-                });
-                */
 
-                // devuelve éxito
-                return { success: true, id: docRef.id };
+                return { success: true, id: docRef.id }; 
 
             } catch (err) {
-            console.error("Error al agregar curso:", err);
-            this.error = "Fallo al crear el curso.";
-            // Devuelve error
-            return { success: false, error: err.message };
+                console.error("Error al agregar curso:", err);
+                return { success: false, error: err };
             }
         },
-
-        // 3. ACTUALIZAR CURSO (updateDoc)
-        async editarCurso(id, newData) {
-            this.error = null;
-            this.loadingCourses = true;
-            try {
-                // Referencia al documento específico
-                const cursoRef = doc(db, 'cursos', id);
-                await updateDoc(cursoRef, newData);
-                // onSnapshot se encarga de la actualización de estado
+        
+        async actualizarCurso(id, data) {
+             try {
+                const cursoRef = doc(db, CURSOS_COLLECTION, id);
+                await updateDoc(cursoRef, data);
                 return { success: true };
-            } catch (err) {
-                this.error = 'Error al editar el curso.';
-                console.error("Firestore Update Error:", err);
-                return { success: false, error: this.error };
-            } finally {
-                this.loadingCourses = false;
+            } catch (error) {
+                console.error("Error al actualizar curso:", error);
+                return { success: false, error: error };
             }
         },
 
-        // 4. ELIMINAR CURSO (deleteDoc)
         async eliminarCurso(id) {
-            this.error = null;
-            this.loadingCourses = true;
             try {
-                const cursoRef = doc(db, 'cursos', id);
+                const cursoRef = doc(db, CURSOS_COLLECTION, id);
                 await deleteDoc(cursoRef);
-                // onSnapshot se encarga de la actualización de estado
                 return { success: true };
-            } catch (err) {
-                this.error = 'Error al eliminar el curso.';
-                console.error("Firestore Delete Error:", err);
-                return { success: false, error: this.error };
-            } finally {
-                this.loadingCourses = false;
+            } catch (error) {
+                console.error("Error al eliminar curso:", error);
+                return { success: false, error: error };
             }
-        },
+        }
     }
 });

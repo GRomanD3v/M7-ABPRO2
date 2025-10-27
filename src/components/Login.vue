@@ -63,6 +63,7 @@ const handleLogin = async () => {
                 id="email"
                 placeholder="usuario@ejemplo.com"
                 required
+                autocomplete="email"
               />
             </div>
 
@@ -78,6 +79,7 @@ const handleLogin = async () => {
                 id="password"
                 placeholder="••••••••"
                 required
+                autocomplete="current-password"
               />
             </div>
 

@@ -1,5 +1,7 @@
-import { auth } from '../firebase/init.js';
 import { defineStore } from 'pinia';
+import { useCursoStore } from './curso'; 
+import { auth } from '../firebase/init.js'; 
+
 import { 
     signInWithEmailAndPassword, 
     signOut, 
@@ -75,14 +77,23 @@ export const useAuthStore = defineStore('auth', {
         // Acción para el cierre de sesión 
         async logoutUser() {
             this.loading = true;
-            this.error = null;
             try {
+                // 1. Obtener la instancia del store de cursos
+                const cursoStore = useCursoStore(); 
+                
+                // 2. Detener el listener de Firestore ANTES de cerrar sesión en Firebase
+                // 🚨 ESTA ES LA LÍNEA QUE RESUELVE EL ERROR DE PERMISOS 🚨
+                cursoStore.detenerListenerCursos(); 
+
+                // 3. Cerrar la sesión de Firebase (Ahora es seguro hacerlo)
                 await signOut(auth);
-            } catch (err) {
-                this.error = 'No se pudo cerrar la sesión.';
-                console.error("Firebase Logout Error:", err);
-            } finally {
+                this.user = null; 
                 this.loading = false;
+
+            } catch (error) {
+                this.loading = false;
+                this.error = error;
+                console.error("Error al cerrar sesión:", error);
             }
         },
         
