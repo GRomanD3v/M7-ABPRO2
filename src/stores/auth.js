@@ -62,9 +62,11 @@ export const useAuthStore = defineStore('auth', {
             this.error = null;
             try {
                 await createUserWithEmailAndPassword(auth, email, password);
+                return { success: true };
             } catch (err) {
                 this.error = this.getFriendlyErrorMessage(err.code);
                 console.error("Firebase Register Error:", err);
+                return { success: false }; 
             } finally {
                 this.loading = false;
             }

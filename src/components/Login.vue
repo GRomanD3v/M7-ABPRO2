@@ -41,7 +41,7 @@ const handleLogin = async () => {
           <!-- Header -->
           <div class="text-center mb-4">
             <h1 class="h2 fw-bold text-tertiary mb-2">
-              <i class="bi bi-person"></i> Adweb Online
+              <i class="bi bi-code-square"></i> Adweb Online
             </h1>
             <p class="text-muted mb-0">
               Inicia sesión para continuar
