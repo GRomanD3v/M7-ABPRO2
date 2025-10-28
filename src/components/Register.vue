@@ -41,7 +41,7 @@ const handleRegister = async () => {
         // Esperar 2 segundos y redirigir
         setTimeout(() => {
             // IMPLEMENTACIÓN CRÍTICA
-            router.push({ name: 'home' });
+            router.push({ name: 'login' });
         }, 2000);
     }
 };

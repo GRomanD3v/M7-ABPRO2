@@ -15,7 +15,7 @@ const { user, isAuthenticated, isAdmin } = storeToRefs(authStore);
 const props = defineProps({
     userName: {
         type: String,
-        required: true
+        required: true,
     }
 });
 
@@ -40,10 +40,10 @@ const goToHome = () => {
 </script>
 
 <template>
-    <header class="bg-primary text-white shadow-sm">
+<header class="bg-primary text-white shadow-sm">
         <div class="container d-flex justify-content-between align-items-center py-3">
             <!-- Logo/Título de la aplicación -->
-            <h1 class="h4 mb-0 fw-bold">Adweb Online</h1>
+            <h1 class="h4 mb-0 fw-bold text-h4 ">Adweb Online</h1>
             
             <!-- Controles de Usuario y Navegación -->
             <div class="d-flex align-items-center">
@@ -54,17 +54,17 @@ const goToHome = () => {
                     @click="goToHome" 
                     class="btn btn-info btn-sm me-3 fw-semibold text-white"
                 >
-                    <i class="bi bi-eye-fill me-1"></i> Ver Cursos
+                    <i class="bi bi-eye-fill me-1"></i> Volver a Home
                 </button>
 
                 <!-- BOTÓN: Panel Admin (Visible solo para Admins Y NO en la vista Admin) -->
-                <button 
+                <v-btn 
                     v-if="isAuthenticated && isAdmin && !isInAdminView"
                     @click="goToAdmin" 
                     class="btn btn-warning btn-sm me-3 fw-semibold"
                 >
                     <i class="bi bi-gear-fill me-1"></i> Panel Admin
-                </button>
+                </v-btn>
                 
                 <!-- Saludo al Usuario -->
                 <span class="me-3 d-none d-sm-inline">
@@ -72,12 +72,12 @@ const goToHome = () => {
                 </span>
 
                 <!-- Botón de Cerrar Sesión -->
-                <button 
+                <v-btn 
                     @click="$emit('logout')" 
                     class="btn btn-danger btn-sm fw-semibold"
                 >
                     <i class="bi bi-box-arrow-right me-1"></i> Cerrar Sesión
-                </button>
+                </v-btn>
             </div>
         </div>
     </header>
