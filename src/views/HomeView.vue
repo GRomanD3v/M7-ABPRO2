@@ -67,7 +67,7 @@ onUnmounted(() => {
           <div class="card h-100 shadow-sm border-0 rounded-3 course-card">
 
             <div class="d-flex justify-center align-center" style="height: 100%;">
-              <v-img :aspect-ratio="1/1" class="bg-surface" :src="course.img" width="200" cover></v-img>
+              <v-img :aspect-ratio="16/9" class="bg-surface" :src="course.img" width="200" cover></v-img>
             </div> 
             <!-- Esta img esta con componente Vuetify -->
 

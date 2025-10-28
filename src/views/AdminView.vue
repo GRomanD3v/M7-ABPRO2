@@ -148,12 +148,12 @@ const goToEdit = (cursoId) => {
 
     <div class="admin-view-wrapper bg-white">
         <main class="container py-4">
-            <h2 class="mb-4 text-primary text-center">Panel de Administración de Cursos</h2>
+            <h2 class="mb-4 text-primary text-center text-h4">Panel de Administración de Cursos</h2>
 
             <div class="d-flex justify-content-end mb-3">
-                <button @click="openAddModal" class="btn btn-primary fw-semibold">
+                <v-btn @click="openAddModal" class="btn fw-semibold" color="indigo-darken-3">
                     <i class="bi bi-plus-circle-fill me-2"></i> Agregar Nuevo Curso
-                </button>
+                </v-btn>
             </div>
 
             <div class="table-responsive shadow-sm rounded-3">
