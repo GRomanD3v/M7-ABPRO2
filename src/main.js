@@ -9,6 +9,17 @@ import { onAuthStateChanged } from 'firebase/auth'
 import { useAuthStore } from './stores/auth'
 
 
+import 'vuetify/styles'
+import * as components from 'vuetify/components'
+import * as directives from 'vuetify/directives'
+import { createVuetify } from 'vuetify'
+
+
+// 1. Crear la instancia de vuetify
+const vuetify = createVuetify({ components, directives })
+
+
+
 // 1. Crear la instancia de Pinia
 const pinia = createPinia()
 
@@ -16,8 +27,10 @@ const pinia = createPinia()
 const app = createApp(App)
 
 // 3. Aplicar Pinia y Router a la aplicación ANTES de montarla
+
 app.use(pinia)
 app.use(router)
+app.use(vuetify)
 
 //Mantener sesión activa al iniciar la aplicación
 const authStore = useAuthStore()

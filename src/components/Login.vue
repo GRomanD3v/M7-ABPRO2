@@ -93,10 +93,11 @@ const handleLogin = async () => {
               <div>{{ error }}</div>
             </div>
 
-            <!-- Botón Login -->
-            <button
+            <!-- Botón Login con vuetify-->
+            <v-btn variant="flat"
               type="submit"
-              class="btn btn-primary btn-lg w-100 fw-semibold"
+              color="indigo-darken-3"
+              class="btn-lg w-100 fw-semibold"
               :disabled="loading" 
             >
               <span v-if="loading"> <!-- Usa la ref local reactiva 'loading' -->
@@ -110,10 +111,10 @@ const handleLogin = async () => {
                 <i class="bi bi-box-arrow-in-right me-2"></i>
                 Iniciar Sesión
               </span>
-            </button>
+            </v-btn>
             <!-- Link a Registro -->
-            <div class="text-center mt-3">
-              <p class="mb-0 text-muted">
+            <div class="text-center mt-3 text-h7">
+              <p class="mb-0 text-muted ">
                 ¿No tienes cuenta?
                 <router-link
                   to="/register"

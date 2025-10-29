@@ -41,7 +41,7 @@ const handleRegister = async () => {
         // Esperar 2 segundos y redirigir
         setTimeout(() => {
             // IMPLEMENTACIÓN CRÍTICA
-            router.push({ name: 'home' });
+            router.push({ name: 'login' });
         }, 2000);
     }
 };
@@ -54,9 +54,9 @@ const handleRegister = async () => {
         <div class="card-body p-4 p-md-5">
           <!-- Header -->
           <div class="text-center mb-4">
-            <h1 class="h2 fw-bold text-success mb-2">
+            <p class="h2 fw-bold text-success mb-2 text-h4">
               <i class="bi bi-person-plus"></i> Crear Cuenta
-            </h1>
+            </p>
             <p class="text-muted mb-0">Regístrate para comenzar</p>
           </div>
 
@@ -109,7 +109,7 @@ const handleRegister = async () => {
                 <span class="spinner-border spinner-border-sm me-2" role="status"></span>
                 Creando cuenta...
               </span>
-              <span v-else>
+              <span v-else style="color: white;">
                 <i class="bi bi-person-plus me-2"></i>
                 Crear Cuenta
               </span>
@@ -117,7 +117,7 @@ const handleRegister = async () => {
 
             <!-- Link a Login -->
             <div class="text-center">
-              <p class="mb-0 text-muted">
+              <p class="mb-0 text-muted text-h7">
                 ¿Ya tienes cuenta? 
                 <router-link to="/login" class="text-success fw-semibold text-decoration-none">
                   Inicia Sesión
@@ -144,15 +144,16 @@ const handleRegister = async () => {
 
 .register-container {
   width: 100%;
-  max-width: 500px;
+  max-width: 600px;
   margin: 0 auto;
 }
 
 .card {
   backdrop-filter: blur(10px);
-  background-color: rgba(255, 255, 255, 0.98);
+  background-color: rgba(255, 255, 255, 0.945);
   width: 100%;
 }
+
 
 .h2 {
   font-size: 2rem;
@@ -201,11 +202,11 @@ const handleRegister = async () => {
 
 /* Animaciones */
 .card {
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition: transform 0.2s ease, box-shadow 0.3s ease;
 }
 
 .card:hover {
-  transform: translateY(-5px);
+  transform: translateY(-2px);
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2) !important;
 }
 

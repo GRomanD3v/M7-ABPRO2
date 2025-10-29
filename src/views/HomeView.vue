@@ -53,7 +53,7 @@ onUnmounted(() => {
 
   <div class="home-view-wrapper bg-light">
     <main class="container py-4">
-      <h2 class="mb-4 text-center text-secondary">Cursos Disponibles</h2>
+      <h2 class="mb-4 text-center text-secondary text-h3">Cursos Disponibles</h2>
 
       <div v-if="loadingCourses" class="text-center py-5">
         <div class="spinner-border text-primary" role="status">
@@ -63,47 +63,66 @@ onUnmounted(() => {
       </div>
 
       <div v-else-if="cursosDisponibles.length > 0" class="row g-4">
-        <div
-          v-for="course in cursosDisponibles"
-          :key="course.id"
-          class="col-sm-6 col-md-4 col-lg-3"
-        >
+        <div v-for="course in cursosDisponibles" :key="course.id" class="col-sm-6 col-md-4 col-lg-3">
           <div class="card h-100 shadow-sm border-0 rounded-3 course-card">
-            <img :src="course.img" class="card-img-top" :alt="course.nombre" />
+
+            <div class="d-flex justify-center align-center" style="height: 100%;">
+              <v-img :aspect-ratio="16/9" class="bg-surface" :src="course.img" width="200" cover></v-img>
+            </div> 
+            <!-- Esta img esta con componente Vuetify -->
+
             <div class="card-body">
-              <h5 class="card-title fw-bold text-primary">
+              <p class="card-title fw-bold text-primary text-h6 ">
                 {{ course.nombre }} ({{ course.codigo }})
-              </h5>
+              </p>
               <p class="card-text text-muted small">{{ course.descripcion }}</p>
-              <span
-                :class="[
+              <span :class="[
                   'badge me-2',
                   course.estado ? 'text-bg-success' : 'text-bg-danger',
-                ]"
-              >
+                ]">
                 {{ course.estado ? "Disponible" : "Cerrado" }}
               </span>
             </div>
-            <div
-              class="card-footer bg-light border-0 d-flex justify-content-between align-items-center"
-            >
+
+            <v-dialog max-width="500">
+              <template v-slot:activator="{ props: activatorProps }">
+                <v-btn v-bind="activatorProps" color="surface-variant" text="Ver Mas" variant="flat"></v-btn>
+              </template>
+
+              <template v-slot:default="{ isActive }">
+                <v-card title="Dialog">
+                  <v-card-text>
+                    {{ course.nombre }} {{ course.duracion }} {{ course.descripcion }}
+                    <p>Uso de componente de Vuetify </p>
+                  </v-card-text>
+
+                  <v-card-actions>
+                    <v-spacer></v-spacer>
+
+                    <v-btn text="Close Dialog" @click="isActive.value = false"></v-btn>
+                  </v-card-actions>
+                </v-card>
+              </template>
+            </v-dialog>
+
+            <div class="card-footer bg-light border-0 d-flex justify-content-between align-items-center">
               <span class="badge text-bg-info">
                 <i class="bi bi-clock me-1"></i> {{ course.duracion }}
               </span>
-              <span class="text-secondary small fw-bold">
-                ${{  Number(course.precio).toLocaleString('es-CL') }}
+              <span class="text-h6 small fw-bold">
+                ${{ Number(course.precio).toLocaleString('es-CL') }}
               </span>
             </div>
           </div>
         </div>
       </div>
-
       <div v-else class="col-12 text-center text-muted py-5">
         <i class="bi bi-info-circle-fill me-2"></i> No hay cursos disponibles
         para mostrar.
       </div>
     </main>
   </div>
+
 </template>
 
 <style scoped>
