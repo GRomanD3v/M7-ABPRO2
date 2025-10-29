@@ -201,3 +201,30 @@ getters: {
 - Real-Time (Tiempo Real): La vista HomeView y AdminView utilizan el listener onSnapshot de Firestore, asegurando que cualquier cambio en la base de datos se refleje en la UI inmediatamente.
 
 - Notificaciones: Todas las operaciones CRUD utilizan el useNotificationStore para mostrar mensajes de éxito o error (Toast/Toastr) en lugar de usar alert().
+
+### Tests Unitarios
+1. **Login.spec.js** - Verifica que el componente Login.vue funcione correctamente para iniciar sesión con correo y contraseña.
+Busca garantizar que el usuario pueda ingresar sus credenciales y que los campos del formulario se comporten correctamente. Pruebas incluidas:
+- Ingreso de datos:
+  Simula la escritura de correo y contraseña en los campos del formulario y verifica que los valores se actualicen correctamente.
+
+- Envío del formulario: 
+  Dispara el evento 'submit' del formulario y comprueba que los valores ingresados coincidan con los esperados, simulando el inicio de sesión.
+
+2. **AdminView.spec.js** - Verifica la funcionalidad de eliminar un curso en el componente AdminVue.vue. Busca garantizar que los cursos puedan ser eliminados correctamente y que la interfaz refleje la acción del usuario. Pruebas incluidas:
+
+
+- Preparación del store: 
+  - Inicializa Pinia y agrega un curso de prueba en el store 'cursoStore'.  
+  - Mockea la función 'eliminarCurso' para simular la eliminación exitosa sin afectar la base de datos real.
+
+- Eliminación de curso: 
+  1. Abre el modal de confirmación para eliminar el curso.  
+  2. Confirma la eliminación.  
+  3. Verifica que 'eliminarCurso' haya sido llamado con el ID correcto.  
+  4. Comprueba que el modal se cierre y que no queden cursos pendientes en 'pendingDeleteCourse'.
+
+#### Consideraciones adicionales
+- Se utiliza **Vitest** como test runner y **Vue Test Utils** para montar los componentes.  
+- Se activa una instancia de **Pinia** antes de cada test con 'beforeEach' para simular el store y evitar errores de dependencias.  
+- Los tests son **unitarios**, enfocándose en la lógica interna de cada componente sin interactuar con la base de datos real.
