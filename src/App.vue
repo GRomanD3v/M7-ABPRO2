@@ -35,10 +35,11 @@ watch(isAuthReady, (isReady) => {
       <div class="spinner-border text-primary" style="width: 4rem; height: 4rem;" role="status">
         <span class="visually-hidden">Cargando...</span>
       </div>
-      <p class="text-muted mt-3 fs-5">Verificando sesión...</p>
+      <p class="text-muted mt-3 fs-5b text-6">Verificando sesión...</p>
     </div>
   </div>
   <AppToast />
+  
 </template>
 
 <style scoped>
