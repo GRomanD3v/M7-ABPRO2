@@ -1,5 +1,15 @@
 # 📚 Adweb Online: Plataforma de Administración de Cursos
  ## Repositorio: https://github.com/GRomanD3v/M7-ABPRO2
+ ## Link Web Hosting: https://cursos-4f1db.web.app/
+
+ 
+  ### Credenciales de administrador
+
+  ```
+  correo: hola@groman.cl
+  contraseña: 123xmi
+  ```
+
  ### Integrantes: 
  - María Teresa De La Fuente
  - Daniela Garrido
@@ -90,7 +100,7 @@ El proyecto se compone de los siguientes módulos:
 
 - Funcionalidad: Componentes modales y sistema de notificaciones Toast para feedback al usuario.
 
-- Tecnologías Clave: Vue Components, Pinia Store (useNotificationStore).
+- Tecnologías Clave: Vue Components, Pinia Store (useNotificationStore), Vuetify como UI framework.
 
 ---
 
@@ -175,7 +185,7 @@ getters: {
 
 - Acción: Navega de vuelta a /
 
-- Proceso CRUD (Creación, Edición y Eliminación)
+- Proceso CRUD (Crear, Leer, Actualizar y Eliminar)
 
 ### Crear un Curso:
 
@@ -200,7 +210,7 @@ getters: {
 
 - Real-Time (Tiempo Real): La vista HomeView y AdminView utilizan el listener onSnapshot de Firestore, asegurando que cualquier cambio en la base de datos se refleje en la UI inmediatamente.
 
-- Notificaciones: Todas las operaciones CRUD utilizan el useNotificationStore para mostrar mensajes de éxito o error (Toast/Toastr) en lugar de usar alert().
+- Notificaciones: Todas las operaciones CRUD utilizan el useNotificationStore para mostrar mensajes de éxito o error (Toast) en lugar de usar alert().
 
 ### Tests Unitarios
 1. **Login.spec.js** - Verifica que el componente Login.vue funcione correctamente para iniciar sesión con correo y contraseña.
