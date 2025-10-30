@@ -107,7 +107,7 @@ const updateCourseConfirmed = async () => {
   const { id, ...dataToUpdate } = courseData.value;
 
   // 6.2 Llamamos a la acción de edición en el store
-  const result = await cursoStore.editarCurso(courseId, dataToUpdate);
+  const result = await cursoStore.actualizarCurso(courseId, dataToUpdate);
 
   if (result.success) {
     notificationStore.showNotification({
